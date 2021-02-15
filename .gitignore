@@ -6,3 +6,5 @@ api-docs/*
 .vscode
 
 .idea
+
+package-lock.json

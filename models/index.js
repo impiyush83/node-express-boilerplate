@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const cls = require('cls-hooked');
+const logger = require('../core/libs/logger');
 
 const config = require('../config/database');
 

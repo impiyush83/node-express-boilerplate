@@ -3,15 +3,13 @@ const express = require('express');
 const logger = require('./core/libs/logger');
 const responseHandler = require('./core/libs/response-handler');
 
-const db = require('./models');
-
 const indexRouter = require('./routes/index');
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-  
+
 app.get('/', (req, res) => {
   res.send(200, 'OK');
 });

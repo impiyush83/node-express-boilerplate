@@ -1,49 +1,27 @@
-const { createLogger, transports, format } = require('winston');
-const _ = require('lodash');
+const winston = require('winston');
 
 const appConfig = require('../../config/app');
 
-const {
-  combine, printf, splat, colorize, simple, timestamp
-} = format;
-
-const loggerFormat = printf((info) => {
-  let formatObject = `${info.level || '-'} ${info.timestamp || '-'} ${info.message} ${JSON.stringify(_.omit(info, ['level', 'message', 'stack', 'timestamp'])) || '-'}`;
-
-  if (info.stack) {
-    formatObject += `\n${info.stack}`;
+const enumerateErrorFormat = winston.format((info) => {
+  if (info instanceof Error) {
+    Object.assign(info, { message: info.stack });
   }
-  return formatObject;
+  return info;
 });
 
-const formats = {
-  colorized: combine(
-    colorize(),
-    splat(),
-    simple(),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    loggerFormat
+const logger = winston.createLogger({
+  level: appConfig.env === 'development' ? 'debug' : 'info',
+  format: winston.format.combine(
+    enumerateErrorFormat(),
+    appConfig.env === 'development' ? winston.format.colorize() : winston.format.uncolorize(),
+    winston.format.splat(),
+    winston.format.printf(({ level, message }) => `${level}: ${message}`)
   ),
-  non_colorized: combine(
-    splat(),
-    simple(),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    loggerFormat
-  )
-};
-
-const logger = createLogger({
   transports: [
-    new (transports.Console)({
-      level: appConfig.log_level,
-      format: appConfig.colorize_logs === 'true' ? formats.colorized : formats.non_colorized
-    })
-  ]
+    new winston.transports.Console({
+      stderrLevels: ['error'],
+    }),
+  ],
 });
 
-logger.stream = {
-  write: (message) => {
-    logger.info((message || '').trim());
-  }
-};
 module.exports = logger;
